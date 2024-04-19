@@ -6,6 +6,7 @@ import Home from "./components/Home.js";
 import Fhome from "./components/Fhome.js";
 import Calendar from "./materials/Calendar.js";
 import CourseDiary from "./components/CourseDiary.js";
+import Doubts from "./components/Doubts.js";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/faculty_home" element={<Fhome />} />
         <Route path="/course_diary" element={<CourseDiary />} />
+        <Route path="/doubts" element={<Doubts />} />
       </Routes>
     </Router>
   );

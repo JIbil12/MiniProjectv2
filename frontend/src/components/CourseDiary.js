@@ -43,7 +43,7 @@ function CourseDiary() {
 
   // Function to handle the selected date
   const handleDateSelect = (date) => {
-    setSelectedDate(date);
+    setSelectedDate(date.toISOString().split("T")[0]); // Convert the date object to a string in the format "YYYY-MM-DD"
     console.log(selectedDate);
   };
 
@@ -79,21 +79,23 @@ function CourseDiary() {
   };
 
   const handleSubmit = async (e) => {
-    setIsVisible(true);
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/fac/get_student_names/",
-        {
-          class: selectedClass,
-          batch: selectedBatch,
-          date: selectedDate,
-        }
-      );
-      setStudentNames(response.data.student_names);
-      console.log(studentNames);
-    } catch (error) {
-      console.error("Error fetching student names:", error);
+    if (selectedDate) {
+      setIsVisible(true);
+      e.preventDefault();
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/fac/get_student_names/",
+          {
+            class: selectedClass,
+            batch: selectedBatch,
+            date: selectedDate,
+          }
+        );
+        setStudentNames(response.data.student_names);
+        console.log(studentNames);
+      } catch (error) {
+        console.error("Error fetching student names:", error);
+      }
     }
   };
 
@@ -194,10 +196,13 @@ function CourseDiary() {
             </a>
           </Link>
 
-          <a href="doubts.html">
-            <span className="material-icons-sharp">grid_view</span>
-            <h3>Doubts</h3>
-          </a>
+          <Link to="/doubts">
+            <a>
+              <span className="material-icons-sharp">grid_view</span>
+              <h3>Doubts</h3>
+            </a>
+          </Link>
+
           <a href="password.html">
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
@@ -284,14 +289,15 @@ function CourseDiary() {
                     </select>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label>Select Date:</label>
                     <input
                       type="date"
                       value={selectedDate}
                       onChange={handleDateChange}
                     />
-                  </div>
+                  </div> */}
+
                   <button type="submit">Submit</button>
                 </form>
               </div>
