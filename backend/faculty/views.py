@@ -21,6 +21,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from login.models import Student, Department, Class,Subject,Faculty,Teaches
 from django.views.decorators.csrf import csrf_exempt
+import json
+from django.http import HttpResponse
 
 fac=""
 dep=""
@@ -36,6 +38,23 @@ def initial(fact,dept):
 
     return
 
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def set_fac(request):
+    global fac
+    global dep
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username1 = data.get('username1')
+        facl = Faculty.objects.filter(fac_id=username1)
+        fac = username1
+        d = facl.get().dept_id.dept_id
+        initial(username1, d)
+        return HttpResponse(f"fac set to {fac}")
+    else:
+        return HttpResponse("Invalid request method")
 
 @api_view(['GET'])
 def fac_data_view(request):
@@ -56,40 +75,30 @@ def fac_data_view(request):
     return Response(user_data)
 
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def fac_login(request):
     if request.method == 'POST':
         print("hello")  # Print "hello" when the POST request is received
-
-        # Your existing code to handle the POST request
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data.get('username')
             password = serializer.validated_data.get('password')
-
-            facl=Faculty.objects.filter(fac_id=username)
-
+            facl = Faculty.objects.filter(fac_id=username)
             if facl.exists():
                 print("user exists")
-                if facl.get().f_password==password:
-                     d=facl.get().dept_id.dept_id
-                     
-                     initial(username,d)
-                     return Response({'redirect_url':'http://localhost:3000/faculty_home/'})
+                if facl.get().f_password == password:
+                    d = facl.get().dept_id.dept_id
+                    initial(username, d)
+                    # Send the username to the frontend
+                    return Response({'username': username, 'redirect_url': 'http://localhost:3000/faculty_home/'})
                 else:
-                    return Response({'message':'invalid credentials'},status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'message': 'invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({'message':'invalid credentials'},status=status.HTTP_400_BAD_REQUEST)
-                    
-
-            
-
-            # Rest of your code...
-            # ...
-
+                return Response({'message': 'invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        # Rest of your code...
+        # ...
         return Response(status=status.HTTP_200_OK)
     
 @api_view(['GET'])

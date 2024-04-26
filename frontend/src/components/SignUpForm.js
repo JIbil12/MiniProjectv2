@@ -8,6 +8,8 @@ function SignUpForm() {
   const [username, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [username1, setUsername1] = useState(null);
   const navigate = useNavigate();
 
   const toggleForm = () => {
@@ -77,23 +79,23 @@ function SignUpForm() {
         );
 
         console.log("***********************************");
-        console.log(response.data); // Handle successful login response
+        console.log("Username:", response.data.username); // Log the username
+        const storedUsername = response.data.username;
+        setUsername1(storedUsername);
+
         const baseurl = "http://localhost:3000";
         let redirecturl = response.data.redirect_url;
 
-        //const isAbsoluteUrl = redirecturl.startsWith("http://") || redirecturl.startsWith("https://");
+        const urlWithUsername = `${redirecturl}?username=${encodeURIComponent(
+          storedUsername
+        )}`;
 
-        // if (!isAbsoluteUrl) {
-        // Construct absolute URL from relative path
-        // redirecturl = new URL(redirecturl, baseurl).toString();
-        // }
-
-        window.location.href = redirecturl;
+        window.location.href = urlWithUsername;
 
         setEmail("");
         setPassword("");
       } catch (error) {
-        console.error("Error:", error); // Handle error
+        console.error("Error:", error);
         console.log("invalid credentials");
         if (
           error.response &&

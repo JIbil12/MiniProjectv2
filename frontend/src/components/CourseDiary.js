@@ -7,8 +7,12 @@ import Calendar from "../materials/Calendar";
 import { Button, Menu, MenuItem } from "@mui/material";
 import Attcard from "./Attcard";
 import Swal from "sweetalert2";
+import { useLocation } from "react-router-dom";
 
 function CourseDiary() {
+  const location = useLocation();
+  const username1 = location.state?.username1;
+
   const [studentNames, setStudentNames] = useState([]);
 
   const [classAnchorEl, setClassAnchorEl] = useState(null);
@@ -25,6 +29,13 @@ function CourseDiary() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        const response1 = await axios.post(
+          "http://127.0.0.1:8000/fac/set_fac/",
+          { username1 }
+        );
+
+        //setted the name and dep
+
         const response = await axios.get(
           "http://127.0.0.1:8000/fac/fac_data_get/"
         );
@@ -183,20 +194,20 @@ function CourseDiary() {
           </h2>
         </div>
         <div className={styles.navbar}>
-          <Link to="/faculty_home">
+          <Link to="/faculty_home" state={{ username1: username1 }}>
             <a href="index.html">
               <span className="material-icons-sharp">home</span>
               <h3>Home</h3>
             </a>
           </Link>
-          <Link to="/course_diary">
+          <Link to="/course_diary" state={{ username1: username1 }}>
             <a href="marks.html " className={styles.active}>
               <span className="material-icons-sharp">today</span>
               <h3>Course Diary</h3>
             </a>
           </Link>
 
-          <Link to="/doubts">
+          <Link to="/doubts" state={{ username1: username1 }}>
             <a>
               <span className="material-icons-sharp">grid_view</span>
               <h3>Doubts</h3>

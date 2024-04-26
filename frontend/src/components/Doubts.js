@@ -6,14 +6,25 @@ import { Link } from "react-router-dom";
 import Calendar from "../materials/Calendar";
 import { Button, Menu, MenuItem } from "@mui/material";
 import Swal from "sweetalert2";
+import { useLocation } from "react-router-dom";
+import Chatapp from "./Chatapp";
 
 function Doubts() {
+  const location = useLocation();
+  const username1 = location.state?.username1;
+
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        const response1 = await axios.post(
+          "http://127.0.0.1:8000/fac/set_fac/",
+          { username1 }
+        );
+
+        //setted the name and dep
         const response = await axios.get(
           "http://127.0.0.1:8000/fac/fac_data_get/"
         );
@@ -54,23 +65,24 @@ function Doubts() {
           </h2>
         </div>
         <div className={styles.navbar}>
-          <Link to="/faculty_home">
+          <Link to="/faculty_home" state={{ username1: username1 }}>
             <a href="index.html">
               <span className="material-icons-sharp">home</span>
               <h3>Home</h3>
             </a>
           </Link>
-          <Link to="/course_diary">
+          <Link to="/course_diary" state={{ username1: username1 }}>
             <a href="marks.html ">
               <span className="material-icons-sharp">today</span>
               <h3>Course Diary</h3>
             </a>
           </Link>
-
-          <a className={styles.active}>
-            <span className="material-icons-sharp">grid_view</span>
-            <h3>Doubts</h3>
-          </a>
+          <Link to="/doubts" state={{ username1: username1 }}>
+            <a className={styles.active}>
+              <span className="material-icons-sharp">grid_view</span>
+              <h3>Doubts</h3>
+            </a>
+          </Link>
           <a href="password.html">
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
@@ -131,7 +143,8 @@ function Doubts() {
             <div className={styles.subjects}>
               <div>
                 {/* chat system here */}
-                <h2>Hello</h2>
+
+                <Chatapp labsData={labsData} />
               </div>
             </div>
           </div>
@@ -140,8 +153,6 @@ function Doubts() {
             {/* Add your timetable component here */}
           </div>
         </main>
-
-        <div className={styles.right}></div>
       </div>
     </div>
   );

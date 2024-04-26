@@ -5,8 +5,22 @@ import profileImage from "../static/profile-1.jpg";
 import { Link } from "react-router-dom";
 import Calendar from "../materials/Calendar";
 import { Button, Menu, MenuItem } from "@mui/material";
+import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 function FHome() {
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Option 1: Retrieve username1 from state
+  const username1FromState = location.state?.username1;
+
+  // Option 2: Retrieve username1 from query parameter
+  const username1FromQueryParam = searchParams.get("username");
+
+  // Use the appropriate value based on how it was passed
+  const username1 = username1FromState || username1FromQueryParam;
+
   const [isVisible, setIsVisible] = useState(false);
 
   const [classAnchorEl, setClassAnchorEl] = useState(null);
@@ -19,10 +33,30 @@ function FHome() {
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null); // State to store the selected date
+  const [username, setUsername] = useState(null); // State for username
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
+        // Get the username from the /fac_login endpoint
+        const loginData = {
+          /* Your login data */
+        };
+
+        //Fixing the error part
+
+        const response1 = await axios.post(
+          "http://127.0.0.1:8000/fac/set_fac/",
+          { username1 }
+        );
+        console.log(response1.data);
+
+        await axios
+          .post("http://127.0.0.1:8000/fac/fac_login/", loginData)
+          .then((response) => {
+            setUsername(response.data.username);
+          });
+
         const response = await axios.get(
           "http://127.0.0.1:8000/fac/fac_data_get/"
         );
@@ -32,11 +66,11 @@ function FHome() {
         );
         setLabsData(labsResponse.data.lab_names);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchUserData();
+    fetchData();
   }, []);
 
   // Function to handle the selected date
@@ -105,17 +139,19 @@ function FHome() {
               <h3>Home</h3>
             </a>
           </Link>
-          <Link to="/course_diary">
-            <a href="marks.html ">
+          <Link to="/course_diary" state={{ username1: username1 }}>
+            <a href="marks.html">
               <span className="material-icons-sharp">today</span>
               <h3>Course Diary</h3>
             </a>
           </Link>
+          <Link to="/doubts" state={{ username1: username1 }}>
+            <a href="doubts.html">
+              <span className="material-icons-sharp">grid_view</span>
+              <h3>Doubts</h3>
+            </a>
+          </Link>
 
-          <a href="doubts.html">
-            <span className="material-icons-sharp">grid_view</span>
-            <h3>Doubts</h3>
-          </a>
           <a href="password.html">
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
@@ -169,6 +205,7 @@ function FHome() {
 
         <main>
           <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Attendance</h1>
+          <h2>Hi {username1}</h2>
 
           <div>
             <div className={styles.subjects}>
