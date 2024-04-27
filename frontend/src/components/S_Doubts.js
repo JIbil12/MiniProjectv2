@@ -4,10 +4,12 @@ import styles from "./Home.module.css"; // Update the import statement
 import profileImage from "../static/profile-1.jpg";
 import { Link } from "react-router-dom";
 import { type } from "@testing-library/user-event/dist/type";
+import Chatapp from "./Chatapp";
 
-function Home() {
+function S_Doubts() {
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
+  const username1 = "PTA21CS001";
 
   useEffect(() => {
     // Fetch user data from the backend
@@ -39,16 +41,18 @@ function Home() {
           </h2>
         </div>
         <div className={styles.navbar}>
-          <a href="index.html" className={styles.active}>
-            <span className="material-icons-sharp">home</span>
-            <h3>Home</h3>
-          </a>
+          <Link to="/home">
+            <a href="index.html">
+              <span className="material-icons-sharp">home</span>
+              <h3>Home</h3>
+            </a>
+          </Link>
           <a href="marks.html ">
             <span className="material-icons-sharp">today</span>
             <h3>Marks</h3>
           </a>
           <Link to="/s_doubts">
-            <a href="doubts.html">
+            <a href="doubts.html" className={styles.active}>
               <span className="material-icons-sharp">grid_view</span>
               <h3>Doubts</h3>
             </a>
@@ -106,39 +110,21 @@ function Home() {
         </aside>
 
         <main>
-          <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Attendance</h1>
+          <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Doubt Session</h1>
 
           <div>
-            {labsData.map((lab, index) => (
-              <div className={styles.subjects}>
-                <div>
-                  <h1>{lab}</h1>
-                  <p>
-                    <div className={styles.percent}>
-                      <b>96%</b>
-                    </div>
-                  </p>
-                </div>
+            <div className={styles.subjects}>
+              <div>
+                {/* chat system here */}
+
+                <Chatapp labsData={labsData} username1={username1} />
               </div>
-            ))}
-          </div>
-
-          <div className={styles.timetable} id="timetable">
-            {/* Add your timetable component here */}
-          </div>
-        </main>
-
-        <div className={styles.right}>
-          <div className={styles.announcements}>
-            <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
-            <div className={styles.updates}>
-              {/* Add your announcements components here */}
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
 }
 
-export default Home;
+export default S_Doubts;

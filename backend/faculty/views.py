@@ -14,12 +14,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework.permissions import AllowAny
-from .serializers import  LoginSerializer
+from .serializers import  LoginSerializer,ChatSerializer
 
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from login.models import Student, Department, Class,Subject,Faculty,Teaches
+from login.models import Student, Department, Class,Subject,Faculty,Teaches,Chats
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import HttpResponse
@@ -236,3 +236,29 @@ def save_course_diary(request):
         return JsonResponse({'success': True})
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+@api_view(['GET'])
+def get_queryset(request):
+    subject = request.GET.get('subject')
+    messages = Chats.objects.filter(subject=subject)
+    serializer = ChatSerializer(messages, many=True)
+    print(serializer.data)
+    return Response(serializer.data)
+
+@csrf_exempt
+def create_chat(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        subject = data.get('subject')
+        sender_id = data.get('sender_id')
+        message = data.get('message')
+
+        chat = Chats.objects.create(
+            subject=subject,
+            sender_id=sender_id,
+            message=message
+        )
+
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'})

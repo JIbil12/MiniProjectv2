@@ -144,7 +144,7 @@ function Doubts() {
               <div>
                 {/* chat system here */}
 
-                <Chatapp labsData={labsData} />
+                <Chatapp labsData={labsData} username1={username1} />
               </div>
             </div>
           </div>

@@ -152,3 +152,12 @@ class CourseDiary(models.Model):
     programname = models.CharField(max_length=100)
     batch = models.IntegerField(choices=[(1, '1'), (2, '2')], null=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True)
+
+class Chats(models.Model):
+    subject = models.CharField(max_length=255)
+    sender_id = models.CharField(max_length=20)
+    message = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.subject} - {self.sender_id} - {self.message[:20]}..."
