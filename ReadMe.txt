@@ -16,3 +16,4 @@ FAC002        Open123@
 
 
 (NOTE : Include id along wiht request to avoid wrong data to get )
+Course diary no date submit gives error

@@ -1,4 +1,12 @@
 cd ..
-cd .envScripts
-.activate    
-cd ....
+cd .\env\Scripts\
+.\activate 
+cd ../..
+cd .\frontend\
+
+
+cd ..
+cd .\env\Scripts\
+.\activate 
+cd ../..
+cd .\backend\
