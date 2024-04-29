@@ -252,13 +252,12 @@ def create_chat(request):
         subject = data.get('subject')
         sender_id = data.get('sender_id')
         message = data.get('message')
-
         chat = Chats.objects.create(
             subject=subject,
             sender_id=sender_id,
             message=message
         )
-
-        return JsonResponse({'status': 'success'})
+        serializer = ChatSerializer(chat)
+        return JsonResponse({'status': 'success', 'data': serializer.data})
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'})

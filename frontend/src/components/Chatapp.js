@@ -6,6 +6,7 @@ function Chatapp({ labsData, username1 }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [activeItem, setActiveItem] = useState("Network Lab");
+  const [refreshInterval, setRefreshInterval] = useState(null);
 
   // Function to format the date and time
   const formatDateTime = (dateTimeString) => {
@@ -41,7 +42,15 @@ function Chatapp({ labsData, username1 }) {
   useEffect(() => {
     // Fetch initial messages for the default subject
     fetchMessages(activeItem);
-  }, []);
+
+    // Set up an interval to periodically fetch messages
+    const interval = setInterval(() => {
+      fetchMessages(activeItem);
+    }, 5000); // Fetch messages every 5 seconds (adjust as needed)
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(interval);
+  }, [activeItem]);
 
   const handleMessageChange = (e) => {
     setNewMessage(e.target.value);
@@ -55,23 +64,29 @@ function Chatapp({ labsData, username1 }) {
 
       try {
         // Send the message to the backend
-        await axios.post("http://127.0.0.1:8000/fac/create_chat/", {
-          subject: activeItem,
-          sender_id: username1,
-          message: newMessage,
-        });
-
-        // Add the new message to the existing messages
-        setMessages([
-          ...messages,
+        const response = await axios.post(
+          "http://127.0.0.1:8000/fac/create_chat/",
           {
+            subject: activeItem,
+            sender_id: username1,
             message: newMessage,
-            time: currentTime,
-            incoming: true, // Set incoming to true for messages sent by the user
-            sender_id: username1, // Add the sender_id property
-          },
-        ]);
-        setNewMessage("");
+          }
+        );
+
+        if (response.data.status === "success") {
+          // Add the new message to the existing messages
+          setMessages([
+            ...messages,
+            {
+              ...response.data.data,
+              time: currentTime,
+              incoming: false, // Set incoming to false for messages sent by the user
+            },
+          ]);
+          setNewMessage("");
+        } else {
+          console.error("Error sending message:", response.data.message);
+        }
       } catch (error) {
         console.error("Error sending message:", error);
       }
