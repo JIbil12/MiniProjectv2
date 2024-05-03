@@ -5,16 +5,39 @@ import profileImage from "../static/profile-1.jpg";
 import { Link } from "react-router-dom";
 import { type } from "@testing-library/user-event/dist/type";
 import Chatapp from "./Chatapp";
+import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 function S_Doubts() {
+  const location = useLocation();
+  const username1 = location.state?.username1;
+
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
-  const username1 = "PTA21CS001";
+  const [username, setUsername] = useState(null); // State for username
 
   useEffect(() => {
     // Fetch user data from the backend
     const fetchUserData = async () => {
       try {
+        const loginData = {
+          /* Your login data */
+        };
+
+        //Fixing the error part
+
+        const response1 = await axios.post(
+          "http://127.0.0.1:8000/myapi/set_stud/",
+          { username1 }
+        );
+        console.log(response1.data);
+
+        await axios
+          .post("http://127.0.0.1:8000/myapi/login/", loginData)
+          .then((response) => {
+            setUsername(response.data.username);
+          });
+        //Prev
         const response = await axios.get(
           "http://127.0.0.1:8000/myapi/user-data/"
         );
@@ -41,17 +64,19 @@ function S_Doubts() {
           </h2>
         </div>
         <div className={styles.navbar}>
-          <Link to="/home">
+          <Link to="/home" state={{ username1: username1 }}>
             <a href="index.html">
               <span className="material-icons-sharp">home</span>
               <h3>Home</h3>
             </a>
           </Link>
-          <a href="marks.html ">
-            <span className="material-icons-sharp">today</span>
-            <h3>Marks</h3>
-          </a>
-          <Link to="/s_doubts">
+          <Link to="/s_marks" state={{ username1: username1 }}>
+            <a href="marks.html ">
+              <span className="material-icons-sharp">today</span>
+              <h3>Marks</h3>
+            </a>
+          </Link>
+          <Link to="/s_doubts" state={{ username1: username1 }}>
             <a href="doubts.html" className={styles.active}>
               <span className="material-icons-sharp">grid_view</span>
               <h3>Doubts</h3>

@@ -1,40 +1,72 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "./Home.module.css"; // Update the import statement
+import styles from "./Home.module.css";
 import profileImage from "../static/profile-1.jpg";
 import { Link } from "react-router-dom";
-import { type } from "@testing-library/user-event/dist/type";
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
-function Home() {
-  //bug fix code
+function S_Marks() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Option 1: Retrieve username1 from state
   const username1FromState = location.state?.username1;
-
-  // Option 2: Retrieve username1 from query parameter
   const username1FromQueryParam = searchParams.get("username");
-
-  // Use the appropriate value based on how it was passed
   const username1 = username1FromState || username1FromQueryParam;
 
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
-  const [username, setUsername] = useState(null); // State for username
+  const [username, setUsername] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
   useEffect(() => {
-    // Fetch user data from the backend
+    if (selectedSubject) {
+      Swal.fire({
+        title: `${selectedSubject.name} Details`,
+        html: `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Marks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${
+                    Array.isArray(selectedSubject.data) &&
+                    selectedSubject.data.length > 0
+                      ? selectedSubject.data
+                          .map(
+                            (item) => `
+                            <tr>
+                              <td>${item.date}</td>
+                              <td>${item.marks}</td>
+                            </tr>
+                          `
+                          )
+                          .join("")
+                      : `
+                          <tr>
+                            <td>${selectedSubject.date}</td>
+                            <td>${selectedSubject.marks}</td>
+                          </tr>
+                        `
+                  }
+                </tbody>
+              </table>
+            `,
+        confirmButtonText: "OK",
+      });
+    }
+  }, [selectedSubject]);
+
+  useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Get the username from the /fac_login endpoint
         const loginData = {
           /* Your login data */
         };
-
-        //Fixing the error part
 
         const response1 = await axios.post(
           "http://127.0.0.1:8000/myapi/set_stud/",
@@ -47,7 +79,7 @@ function Home() {
           .then((response) => {
             setUsername(response.data.username);
           });
-        //Prev
+
         const response = await axios.get(
           "http://127.0.0.1:8000/myapi/user-data/"
         );
@@ -64,6 +96,18 @@ function Home() {
     fetchUserData();
   }, []);
 
+  const handleSubjectClick = async (lab) => {
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/myapi/subject-details/${lab}/?username1=${username1}`
+      );
+      const { marks, date } = response.data;
+      setSelectedSubject({ name: lab, marks, date });
+    } catch (error) {
+      console.error("Error fetching subject details:", error);
+    }
+  };
+
   return (
     <div>
       <header className={styles.header}>
@@ -74,12 +118,14 @@ function Home() {
           </h2>
         </div>
         <div className={styles.navbar}>
-          <a href="index.html" className={styles.active}>
-            <span className="material-icons-sharp">home</span>
-            <h3>Home</h3>
-          </a>
+          <Link to="/home" state={{ username1: username1 }}>
+            <a href="index.html">
+              <span className="material-icons-sharp">home</span>
+              <h3>Home</h3>
+            </a>
+          </Link>
           <Link to="/s_marks" state={{ username1: username1 }}>
-            <a href="marks.html ">
+            <a href="marks.html " className={styles.active}>
               <span className="material-icons-sharp">today</span>
               <h3>Marks</h3>
             </a>
@@ -144,17 +190,19 @@ function Home() {
 
         <main>
           <h2>Hi {username1}</h2>
-          <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Attendance</h1>
+          <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Marks</h1>
 
           <div>
             {labsData.map((lab, index) => (
-              <div className={styles.subjects}>
+              <div
+                key={index}
+                className={styles.subjects}
+                onClick={() => handleSubjectClick(lab)}
+              >
                 <div>
                   <h1>{lab}</h1>
                   <p>
-                    <div className={styles.percent}>
-                      <b>96%</b>
-                    </div>
+                    <div className={styles.percent}></div>
                   </p>
                 </div>
               </div>
@@ -179,4 +227,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default S_Marks;

@@ -1,4 +1,5 @@
 # Create your views here.
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -7,6 +8,7 @@ from django.views.decorators.cache import never_cache
 from .models import students
 from .forms import insert_Form
 from login.models import Student
+import json
 
 # views.py
 from rest_framework.decorators import api_view,permission_classes
@@ -19,7 +21,7 @@ from .serializers import LoginSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Student, Department, Class,Subject
+from .models import Student, Department, Class,Subject,CourseDiary
 
 fac=""
 dep=""
@@ -27,11 +29,14 @@ cla=""
 cou=""
 sem=""
 
-def initial(fact,dept,sems):
+
+def initial(fact,dept):
     global fac,dep,sem
     fac=fact
     dep=dept
-    sem=sems
+    student = get_object_or_404(Student, stud_id=fac)
+    sem=student.sem
+  
     return
 
 def tial(clat,cout):
@@ -92,12 +97,13 @@ def login_view(request):
                 if std.get().s_password==password:
                      d=std.get().dept_id.dept_id
                      sem=std.get().sem
-                     initial(username,d,sem)
-                     return Response({'redirect_url':'http://localhost:3000/home/'})
+                     initial(username,d)
+                     return Response({'username': username,'redirect_url':'http://localhost:3000/home/'})
                 else:
                     return Response({'message':'invalid credentials'},status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'message':'invalid credentials'},status=status.HTTP_400_BAD_REQUEST)
+        
                     
 
             
@@ -158,3 +164,43 @@ def insert_data(request):
             frm.save()
     frm=insert_Form()
     return render(request,'create.html',{'frm':frm})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def set_stud(request):
+    print("hi")
+    global fac
+    global dep
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username1 = data.get('username1')
+        print(username1)
+        facl = Student.objects.filter(stud_id=username1)
+        fac = username1
+        d = facl.get().dept_id.dept_id
+        initial(username1, d)
+        return HttpResponse(f"fac set to {fac}")
+        print("done")
+    else:
+        return HttpResponse("Invalid request method")
+
+   
+def get_subject_details(request, subject_id):
+    print(subject_id)
+    print("hi")
+    username1 = request.GET.get('username1')
+    print(username1)
+    student = get_object_or_404(Student, stud_id=username1)
+    subject = get_object_or_404(Subject, subject_name=subject_id)
+    course_diary = CourseDiary.objects.filter(student=student, subject=subject).first()
+
+    if course_diary:
+        data = {
+            'marks': course_diary.vivamark,
+            'date': course_diary.date.strftime('%Y-%m-%d'),
+        }
+        print(data)
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'error': 'No CourseDiary found for the given student and subject.'}, status=404)

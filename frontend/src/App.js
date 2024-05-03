@@ -8,6 +8,7 @@ import Calendar from "./materials/Calendar.js";
 import CourseDiary from "./components/CourseDiary.js";
 import Doubts from "./components/Doubts.js";
 import S_Doubts from "./components/S_Doubts.js";
+import S_Marks from "./components/S_Marks.js";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/course_diary" element={<CourseDiary />} />
         <Route path="/doubts" element={<Doubts />} />
         <Route path="/s_doubts" element={<S_Doubts />} />
+        <Route path="/s_marks" element={<S_Marks />} />
       </Routes>
     </Router>
   );

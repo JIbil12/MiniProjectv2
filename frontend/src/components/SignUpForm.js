@@ -39,18 +39,18 @@ function SignUpForm() {
         );
 
         console.log("***********************************");
-        console.log(response.data); // Handle successful login response
+        // Handle successful login response
+        const storedUsername = response.data.username; // Capture the username from the response
         const baseurl = "http://localhost:3000";
         let redirecturl = response.data.redirect_url;
 
-        //const isAbsoluteUrl = redirecturl.startsWith("http://") || redirecturl.startsWith("https://");
+        // Add the username as a query parameter to the redirection URL
+        const urlWithUsername = `${redirecturl}?username=${encodeURIComponent(
+          storedUsername
+        )}`;
 
-        // if (!isAbsoluteUrl) {
-        // Construct absolute URL from relative path
-        // redirecturl = new URL(redirecturl, baseurl).toString();
-        // }
-
-        window.location.href = redirecturl;
+        // Redirect the user to the updated URL that includes the username as a query parameter
+        window.location.href = urlWithUsername;
 
         setEmail("");
         setPassword("");
