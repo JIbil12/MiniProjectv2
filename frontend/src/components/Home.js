@@ -1,40 +1,33 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "./Home.module.css"; // Update the import statement
+import styles from "./Home.module.css";
 import profileImage from "../static/profile-1.jpg";
 import { Link } from "react-router-dom";
-import { type } from "@testing-library/user-event/dist/type";
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+import Swal from "sweetalert2";
 
 function Home() {
-  //bug fix code
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Option 1: Retrieve username1 from state
   const username1FromState = location.state?.username1;
-
-  // Option 2: Retrieve username1 from query parameter
   const username1FromQueryParam = searchParams.get("username");
-
-  // Use the appropriate value based on how it was passed
   const username1 = username1FromState || username1FromQueryParam;
 
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
-  const [username, setUsername] = useState(null); // State for username
+  const [username, setUsername] = useState(null);
+  const [labAttendanceData, setLabAttendanceData] = useState([]);
 
   useEffect(() => {
-    // Fetch user data from the backend
     const fetchUserData = async () => {
       try {
-        // Get the username from the /fac_login endpoint
         const loginData = {
           /* Your login data */
         };
-
-        //Fixing the error part
 
         const response1 = await axios.post(
           "http://127.0.0.1:8000/myapi/set_stud/",
@@ -47,7 +40,7 @@ function Home() {
           .then((response) => {
             setUsername(response.data.username);
           });
-        //Prev
+
         const response = await axios.get(
           "http://127.0.0.1:8000/myapi/user-data/"
         );
@@ -56,6 +49,11 @@ function Home() {
           "http://127.0.0.1:8000/myapi/lab-details/"
         );
         setLabsData(labsResponse.data.lab_names);
+
+        const attendanceResponse = await axios.get(
+          "http://127.0.0.1:8000/myapi/lab-attendance-percentages/"
+        );
+        setLabAttendanceData(attendanceResponse.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -63,6 +61,20 @@ function Home() {
 
     fetchUserData();
   }, []);
+
+  const showSweetAlert = (labName) => {
+    Swal.fire({
+      title: `Lab Name: ${labName}`,
+      text: "Do you want to view more details?",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        console.log(`Viewing details for ${labName}`);
+      }
+    });
+  };
 
   return (
     <div>
@@ -147,18 +159,42 @@ function Home() {
           <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Attendance</h1>
 
           <div>
-            {labsData.map((lab, index) => (
-              <div className={styles.subjects}>
-                <div>
-                  <h1>{lab}</h1>
-                  <p>
-                    <div className={styles.percent}>
-                      <b>96%</b>
-                    </div>
-                  </p>
+            {labsData.map((lab, index) => {
+              const attendancePercentage = labAttendanceData.find(
+                (item) => item.subject_name === lab
+              )?.attendance_percentage;
+
+              return (
+                <div
+                  className={styles.subjects}
+                  key={index}
+                  onClick={() => showSweetAlert(lab)}
+                >
+                  <div>
+                    <h1>{lab}</h1>
+                    <p>
+                      <div className={styles.percent}>
+                        <div style={{ width: 50, height: 60 }}>
+                          <b>
+                            <CircularProgressbar
+                              value={attendancePercentage || 0}
+                              text={`${attendancePercentage || 0}%`}
+                              styles={buildStyles({
+                                textColor: "#000",
+                                pathColor: "#f00",
+                                trailColor: "#d6d6d6",
+                                textSize: "16px",
+                                fontWeight: "bold",
+                              })}
+                            />
+                          </b>
+                        </div>
+                      </div>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className={styles.timetable} id="timetable">

@@ -8,6 +8,7 @@ from django.views.decorators.cache import never_cache
 from .models import students
 from .forms import insert_Form
 from login.models import Student
+from django.db.models import Sum
 import json
 
 # views.py
@@ -185,7 +186,8 @@ def set_stud(request):
     else:
         return HttpResponse("Invalid request method")
 
-   
+#subject viva marks   
+@api_view(['GET'])
 def get_subject_details(request, subject_id):
     print(subject_id)
     print("hi")
@@ -193,14 +195,43 @@ def get_subject_details(request, subject_id):
     print(username1)
     student = get_object_or_404(Student, stud_id=username1)
     subject = get_object_or_404(Subject, subject_name=subject_id)
-    course_diary = CourseDiary.objects.filter(student=student, subject=subject).first()
+    course_diary_entries = CourseDiary.objects.filter(student=student, subject=subject).values('date', 'vivamark')
+    data = list(course_diary_entries)
+    return Response(data)
 
-    if course_diary:
-        data = {
-            'marks': course_diary.vivamark,
-            'date': course_diary.date.strftime('%Y-%m-%d'),
-        }
-        print(data)
-        return JsonResponse(data)
-    else:
-        return JsonResponse({'error': 'No CourseDiary found for the given student and subject.'}, status=404)
+@api_view(['GET'])
+def get_lab_attendance_percentages(request):
+    labs = Subject.objects.filter(semester=sem, department=dep)
+    
+    lab_attendance_data = []
+    for lab in labs:
+        total_entries = CourseDiary.objects.filter(subject=lab).count()
+        present_entries = CourseDiary.objects.filter(subject=lab, attendance='Present').count()
+        if total_entries > 0:
+            attendance_percentage = round((present_entries / total_entries) * 100, 2)
+        else:
+            attendance_percentage = 0.0
+        lab_attendance_data.append({
+            'subject_name': lab.subject_name,
+            'attendance_percentage': attendance_percentage
+        })
+    return Response(lab_attendance_data)
+
+@api_view(['GET'])
+def get_subject_vivamarks(request, username1):
+    print("new function")
+    print(username1)
+    student = get_object_or_404(Student, stud_id=username1)
+    labs = Subject.objects.filter(semester=student.sem, department=student.dept_id)
+    print(student, labs)
+    subject_vivamarks = []
+    for lab in labs:
+        total_vivamark = CourseDiary.objects.filter(student=student, subject=lab).aggregate(Sum('vivamark'))['vivamark__sum']
+        if total_vivamark is None:
+            total_vivamark = 0.0
+        subject_vivamarks.append({
+            'subject_name': lab.subject_name,
+            'total_vivamark': total_vivamark
+        })
+    print(subject_vivamarks)
+    return Response(subject_vivamarks)

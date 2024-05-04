@@ -18,44 +18,45 @@ function S_Marks() {
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
   const [username, setUsername] = useState(null);
+  const [subjectVivamarks, setSubjectVivamarks] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
 
   useEffect(() => {
     if (selectedSubject) {
+      const tableRows =
+        selectedSubject.data.length > 0
+          ? selectedSubject.data
+              .map(
+                (item) => `
+              <tr>
+                <td>${item.date}</td>
+                <td>${item.vivamark}</td>
+              </tr>
+            `
+              )
+              .join("")
+          : `
+            <tr>
+              <td>No data found</td>
+              <td>-</td>
+            </tr>
+          `;
+
       Swal.fire({
         title: `${selectedSubject.name} Details`,
         html: `
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Marks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${
-                    Array.isArray(selectedSubject.data) &&
-                    selectedSubject.data.length > 0
-                      ? selectedSubject.data
-                          .map(
-                            (item) => `
-                            <tr>
-                              <td>${item.date}</td>
-                              <td>${item.marks}</td>
-                            </tr>
-                          `
-                          )
-                          .join("")
-                      : `
-                          <tr>
-                            <td>${selectedSubject.date}</td>
-                            <td>${selectedSubject.marks}</td>
-                          </tr>
-                        `
-                  }
-                </tbody>
-              </table>
-            `,
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Marks</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        `,
         confirmButtonText: "OK",
       });
     }
@@ -88,6 +89,11 @@ function S_Marks() {
           "http://127.0.0.1:8000/myapi/lab-details/"
         );
         setLabsData(labsResponse.data.lab_names);
+
+        const vivamarksResponse = await axios.get(
+          `http://127.0.0.1:8000/myapi/subject-vivamarks/${username1}/`
+        );
+        setSubjectVivamarks(vivamarksResponse.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -101,8 +107,7 @@ function S_Marks() {
       const response = await axios.get(
         `http://127.0.0.1:8000/myapi/subject-details/${lab}/?username1=${username1}`
       );
-      const { marks, date } = response.data;
-      setSelectedSubject({ name: lab, marks, date });
+      setSelectedSubject({ name: lab, data: response.data });
     } catch (error) {
       console.error("Error fetching subject details:", error);
     }
@@ -193,20 +198,31 @@ function S_Marks() {
           <h1 style={{ fontWeight: 800, fontSize: "1.8rem" }}>Marks</h1>
 
           <div>
-            {labsData.map((lab, index) => (
-              <div
-                key={index}
-                className={styles.subjects}
-                onClick={() => handleSubjectClick(lab)}
-              >
-                <div>
-                  <h1>{lab}</h1>
-                  <p>
-                    <div className={styles.percent}></div>
-                  </p>
+            {labsData.map((lab, index) => {
+              const subjectData = subjectVivamarks.find(
+                (item) => item.subject_name === lab
+              );
+              const totalVivamark = subjectData
+                ? subjectData.total_vivamark
+                : 0;
+
+              return (
+                <div
+                  key={index}
+                  className={styles.subjects}
+                  onClick={() => handleSubjectClick(lab)}
+                >
+                  <div>
+                    <h1>{lab}</h1>
+                    <p>
+                      <div className={styles.percent}>
+                        Total Mark: {totalVivamark}/100
+                      </div>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className={styles.timetable} id="timetable">
