@@ -21,6 +21,50 @@ function Home() {
   const [labsData, setLabsData] = useState([]);
   const [username, setUsername] = useState(null);
   const [labAttendanceData, setLabAttendanceData] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+
+  const [pendingWorks, setPendingWorks] = useState([]);
+
+  useEffect(() => {
+    if (selectedSubject) {
+      const tableRows =
+        selectedSubject.data.length > 0
+          ? selectedSubject.data
+              .map(
+                (item) => `
+              <tr>
+                <td>${item.date}</td>
+                <td>${item.attendance}</td>
+              </tr>
+            `
+              )
+              .join("")
+          : `
+            <tr>
+              <td>No data found</td>
+              <td>-</td>
+            </tr>
+          `;
+
+      Swal.fire({
+        title: `${selectedSubject.name} Details`,
+        html: `
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Attendance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        `,
+        confirmButtonText: "OK",
+      });
+    }
+  }, [selectedSubject]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,7 +95,7 @@ function Home() {
         setLabsData(labsResponse.data.lab_names);
 
         const attendanceResponse = await axios.get(
-          "http://127.0.0.1:8000/myapi/lab-attendance-percentages/"
+          `http://127.0.0.1:8000/myapi/lab-attendance-percentages/?username1=${username1}`
         );
         setLabAttendanceData(attendanceResponse.data);
       } catch (error) {
@@ -62,17 +106,47 @@ function Home() {
     fetchUserData();
   }, []);
 
-  const showSweetAlert = (labName) => {
-    Swal.fire({
-      title: `Lab Name: ${labName}`,
-      text: "Do you want to view more details?",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        console.log(`Viewing details for ${labName}`);
+  useEffect(() => {
+    // ... (existing code)
+
+    const fetchPendingWorks = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/myapi/pending-works/?username1=${username1}`
+        );
+        setPendingWorks(response.data);
+      } catch (error) {
+        console.error("Error fetching pending works:", error);
       }
+    };
+
+    fetchPendingWorks();
+  }, [username1]);
+
+  const showSweetAlert = async (labName) => {
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/myapi/subject-details2/${labName}/?username1=${username1}`
+      );
+      const subjectData = {
+        name: labName,
+        data: response.data.map((entry) => ({
+          date: entry.date,
+          attendance: entry.attendance,
+        })),
+      };
+      setSelectedSubject(subjectData);
+    } catch (error) {
+      console.error("Error fetching subject details:", error);
+    }
+  };
+
+  const handlePasswordChangeClick = () => {
+    Swal.fire({
+      title: "Contact Admin",
+      text: "Please contact the admin for password change.",
+      icon: "info",
+      confirmButtonText: "OK",
     });
   };
 
@@ -102,7 +176,13 @@ function Home() {
               <h3>Doubts</h3>
             </a>
           </Link>
-          <a href="password.html">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePasswordChangeClick();
+            }}
+          >
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
           </a>
@@ -204,9 +284,19 @@ function Home() {
 
         <div className={styles.right}>
           <div className={styles.announcements}>
-            <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
+            <h2 style={{ marginBottom: "0.8rem" }}>Pending Works</h2>
             <div className={styles.updates}>
-              {/* Add your announcements components here */}
+              {pendingWorks.length > 0 ? (
+                <ul>
+                  {pendingWorks.map((work, index) => (
+                    <li key={index}>
+                      {work.subject} {work.programname}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No pending works found.</p>
+              )}
             </div>
           </div>
         </div>

@@ -21,6 +21,8 @@ function S_Marks() {
   const [subjectVivamarks, setSubjectVivamarks] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
 
+  const [labData3, setLabData3] = useState([]);
+
   useEffect(() => {
     if (selectedSubject) {
       const tableRows =
@@ -102,6 +104,26 @@ function S_Marks() {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/myapi/get_lab_attendance_and_marks",
+          {
+            params: {
+              username1: "your_username",
+            },
+          }
+        );
+        setLabData3(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleSubjectClick = async (lab) => {
     try {
       const response = await axios.get(
@@ -111,6 +133,14 @@ function S_Marks() {
     } catch (error) {
       console.error("Error fetching subject details:", error);
     }
+  };
+  const handlePasswordChangeClick = () => {
+    Swal.fire({
+      title: "Contact Admin",
+      text: "Please contact the admin for password change.",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
   };
 
   return (
@@ -141,7 +171,13 @@ function S_Marks() {
               <h3>Doubts</h3>
             </a>
           </Link>
-          <a href="password.html">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePasswordChangeClick();
+            }}
+          >
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
           </a>
@@ -205,6 +241,7 @@ function S_Marks() {
               const totalVivamark = subjectData
                 ? subjectData.total_vivamark
                 : 0;
+              const maxVivamark = subjectData ? subjectData.max_vivamark : 100; // Assuming a default value of 100
 
               return (
                 <div
@@ -216,7 +253,7 @@ function S_Marks() {
                     <h1>{lab}</h1>
                     <p>
                       <div className={styles.percent}>
-                        Total Mark: {totalVivamark}/100
+                        Total Mark: {totalVivamark}/{maxVivamark}
                       </div>
                     </p>
                   </div>
@@ -230,14 +267,20 @@ function S_Marks() {
           </div>
         </main>
 
-        <div className={styles.right}>
+        {/* <div className={styles.right}>
           <div className={styles.announcements}>
             <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
             <div className={styles.updates}>
-              {/* Add your announcements components here */}
+              {labData3.map((lab) => (
+                <div key={lab.subject_name}>
+                  <p>
+                    <strong>{lab.subject_name}</strong>: {lab.mark_out_of_50}/50
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

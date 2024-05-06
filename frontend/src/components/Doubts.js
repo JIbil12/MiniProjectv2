@@ -15,6 +15,7 @@ function Doubts() {
 
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -54,6 +55,29 @@ function Doubts() {
   };
 
   // *************NEw attendanceData**********************
+  useEffect(() => {
+    // Fetch announcements data from the backend
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/myapi/announcements/"
+        );
+        setAnnouncements(response.data);
+      } catch (error) {
+        console.error("Error fetching announcements:", error);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
+  const handlePasswordChangeClick = () => {
+    Swal.fire({
+      title: "Contact Admin",
+      text: "Please contact the admin for password change.",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
+  };
 
   return (
     <div>
@@ -83,7 +107,13 @@ function Doubts() {
               <h3>Doubts</h3>
             </a>
           </Link>
-          <a href="password.html">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePasswordChangeClick();
+            }}
+          >
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
           </a>
@@ -153,6 +183,25 @@ function Doubts() {
             {/* Add your timetable component here */}
           </div>
         </main>
+        <div className={styles.right}>
+          <div className={styles.announcements}>
+            <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
+            <div className={styles.updates}>
+              {announcements.length > 0 ? (
+                <ul>
+                  {announcements.map((announcement, index) => (
+                    <li key={index}>
+                      <p>{announcement.message}</p>
+                      <small>{announcement.date}</small>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No announcements found.</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,15 +1,17 @@
 # Create your views here.
+from datetime import timezone
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from django.views.decorators.cache import never_cache
-from .models import students
+from .models import Announcement, PassChangeReq, students
 from .forms import insert_Form
 from login.models import Student
 from django.db.models import Sum
 import json
+from django.db.models import Q,F
 
 # views.py
 from rest_framework.decorators import api_view,permission_classes
@@ -199,14 +201,30 @@ def get_subject_details(request, subject_id):
     data = list(course_diary_entries)
     return Response(data)
 
+
+@api_view(['GET'])
+def get_subject_details2(request, subject_id):
+    print(subject_id)
+    print("hi 2")
+    username1 = request.GET.get('username1')
+    print(username1)
+    student = get_object_or_404(Student, stud_id=username1)
+    subject = get_object_or_404(Subject, subject_name=subject_id)
+    course_diary_entries = CourseDiary.objects.filter(student=student, subject=subject).values('date', 'attendance')
+    data = list(course_diary_entries)
+    print(data)
+    return Response(data)
+
 @api_view(['GET'])
 def get_lab_attendance_percentages(request):
-    labs = Subject.objects.filter(semester=sem, department=dep)
-    
+    username1 = request.GET.get('username1')
+    student = get_object_or_404(Student, stud_id=username1)
+    labs = Subject.objects.filter(semester=student.sem, department=student.dept_id)
     lab_attendance_data = []
+
     for lab in labs:
-        total_entries = CourseDiary.objects.filter(subject=lab).count()
-        present_entries = CourseDiary.objects.filter(subject=lab, attendance='Present').count()
+        total_entries = CourseDiary.objects.filter(subject=lab, student=student).count()
+        present_entries = CourseDiary.objects.filter(subject=lab, student=student, attendance='Present').count()
         if total_entries > 0:
             attendance_percentage = round((present_entries / total_entries) * 100, 2)
         else:
@@ -215,23 +233,116 @@ def get_lab_attendance_percentages(request):
             'subject_name': lab.subject_name,
             'attendance_percentage': attendance_percentage
         })
+
     return Response(lab_attendance_data)
 
 @api_view(['GET'])
 def get_subject_vivamarks(request, username1):
-    print("new function")
-    print(username1)
     student = get_object_or_404(Student, stud_id=username1)
     labs = Subject.objects.filter(semester=student.sem, department=student.dept_id)
-    print(student, labs)
     subject_vivamarks = []
     for lab in labs:
+        attendance_count = CourseDiary.objects.filter(student=student, subject=lab).values('date').distinct().count()
         total_vivamark = CourseDiary.objects.filter(student=student, subject=lab).aggregate(Sum('vivamark'))['vivamark__sum']
+        max_vivamark = attendance_count * 20
         if total_vivamark is None:
             total_vivamark = 0.0
         subject_vivamarks.append({
             'subject_name': lab.subject_name,
-            'total_vivamark': total_vivamark
+            'total_vivamark': total_vivamark,
+            'max_vivamark': max_vivamark
         })
-    print(subject_vivamarks)
     return Response(subject_vivamarks)
+
+from django.db.models import Q
+
+def get_pending_works(request):
+    username1 = request.GET.get('username1')
+    student = Student.objects.get(stud_id=username1)
+    pending_works = CourseDiary.objects.filter(
+        Q(student=student) & Q(output='Not Verified')
+    ).values(
+        'programname',
+        'subject__subject_name'
+    )
+    data = [
+        {
+            'subject': f" {item['subject__subject_name']} : ",
+            'programname': item['programname']
+        }
+        for item in pending_works
+    ]
+    return JsonResponse(data, safe=False)
+def get_announcements(request):
+    announcements = Announcement.objects.values('message', 'date')
+    return JsonResponse(list(announcements), safe=False)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def submit_password_change_request(request):
+    if request.method == 'POST':
+        username1 = request.POST.get('username1')
+        print(username1)  # Print the received username1 for debugging purposes
+
+        # Get the Student object or return a 404 error if it doesn't exist
+        student = get_object_or_404(Student, stud_id=username1)
+
+        # Check if a recent request already exists
+        recent_request_exists = PassChangeReq.objects.filter(
+            student=student,
+            time__gte=timezone.now() - timezone.timedelta(hours=24)
+        ).exists()
+
+        if recent_request_exists:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'A recent request already exists. Please wait.'
+            })
+
+        # Create a new request
+        new_request = PassChangeReq(student=student)
+        new_request.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Request submitted successfully.'
+        })
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method.'
+    })
+
+
+def get_lab_attendance_and_marks(request):
+    username1 = request.GET.get('username1')
+    student = get_object_or_404(Student, stud_id=username1)
+    labs = Subject.objects.filter(semester=student.sem, department=student.dept_id)
+    lab_data = []
+
+    for lab in labs:
+        total_entries = CourseDiary.objects.filter(subject=lab, student=student).count()
+        present_entries = CourseDiary.objects.filter(subject=lab, student=student, attendance='Present').count()
+
+        if total_entries > 0:
+            attendance_percentage = round((present_entries / total_entries) * 100, 2)
+        else:
+            attendance_percentage = 0.0
+
+        attendance_count = CourseDiary.objects.filter(student=student, subject=lab).values('date').distinct().count()
+        total_vivamark = CourseDiary.objects.filter(student=student, subject=lab).aggregate(Sum('vivamark'))['vivamark__sum']
+        max_vivamark = attendance_count * 20
+
+        if total_vivamark is None:
+            total_vivamark = 0.0
+
+        mark_out_of_50 = round((total_vivamark / max_vivamark) * 50, 2)
+
+        lab_data.append({
+            'subject_name': lab.subject_name,
+            'attendance_percentage': attendance_percentage,
+            'mark_out_of_50': mark_out_of_50
+        })
+
+    return Response(lab_data)

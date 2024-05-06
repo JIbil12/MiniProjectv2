@@ -7,6 +7,8 @@ import Calendar from "../materials/Calendar";
 import { Button, Menu, MenuItem } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import GenderSelection from "./GenderSelection";
+import Swal from "sweetalert2";
 
 function FHome() {
   const location = useLocation();
@@ -123,6 +125,17 @@ function FHome() {
     }
   };
 
+  //password change
+
+  const handlePasswordChangeClick = () => {
+    Swal.fire({
+      title: "Contact Admin",
+      text: "Please contact the admin for password change.",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
+  };
+
   return (
     <div>
       <header className={styles.header}>
@@ -152,7 +165,13 @@ function FHome() {
             </a>
           </Link>
 
-          <a href="password.html">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePasswordChangeClick();
+            }}
+          >
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
           </a>
@@ -276,6 +295,7 @@ function FHome() {
                 >
                   Submit
                 </button>
+                {/* <GenderSelection /> */}
               </div>
             </div>
             {isVisible && (

@@ -161,3 +161,22 @@ class Chats(models.Model):
 
     def __str__(self):
         return f"{self.subject} - {self.sender_id} - {self.message[:20]}..."
+    
+class Announcement(models.Model):
+    message = models.TextField()
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.message
+
+
+class PassChangeReq(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='pass_change_reqs')
+    time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Password Change Request'
+        verbose_name_plural = 'Password Change Requests'
+
+    def __str__(self):
+        return f"Password Change Request for {self.student.username} at {self.time}"

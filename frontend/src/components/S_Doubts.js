@@ -7,6 +7,7 @@ import { type } from "@testing-library/user-event/dist/type";
 import Chatapp from "./Chatapp";
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
 function S_Doubts() {
   const location = useLocation();
@@ -15,6 +16,8 @@ function S_Doubts() {
   const [userData, setUserData] = useState(null);
   const [labsData, setLabsData] = useState([]);
   const [username, setUsername] = useState(null); // State for username
+
+  const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
     // Fetch user data from the backend
@@ -54,6 +57,30 @@ function S_Doubts() {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    // Fetch announcements data from the backend
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/myapi/announcements/"
+        );
+        setAnnouncements(response.data);
+      } catch (error) {
+        console.error("Error fetching announcements:", error);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
+  const handlePasswordChangeClick = () => {
+    Swal.fire({
+      title: "Contact Admin",
+      text: "Please contact the admin for password change.",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
+  };
+
   return (
     <div>
       <header className={styles.header}>
@@ -82,7 +109,13 @@ function S_Doubts() {
               <h3>Doubts</h3>
             </a>
           </Link>
-          <a href="password.html">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePasswordChangeClick();
+            }}
+          >
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
           </a>
@@ -147,6 +180,25 @@ function S_Doubts() {
             </div>
           </div>
         </main>
+        <div className={styles.right}>
+          <div className={styles.announcements}>
+            <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
+            <div className={styles.updates}>
+              {announcements.length > 0 ? (
+                <ul>
+                  {announcements.map((announcement, index) => (
+                    <li key={index}>
+                      <p>{announcement.message}</p>
+                      <small>{announcement.date}</small>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No announcements found.</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

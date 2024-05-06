@@ -1,7 +1,7 @@
 import csv
 from django.contrib import admin
 from django.http import HttpResponse
-from .models import Department, Class, Student, Faculty, Attendance,Subject,Teaches,CourseDiary,Chats
+from .models import Department, Class, Student, Faculty, Attendance,Subject,Teaches,CourseDiary,Chats,Announcement,PassChangeReq
 
 
 class AttendanceAdmin(admin.ModelAdmin):
@@ -34,3 +34,5 @@ admin.site.register(Subject)
 admin.site.register(Teaches)
 admin.site.register(CourseDiary)
 admin.site.register(Chats)
+admin.site.register(Announcement)
+admin.site.register(PassChangeReq)

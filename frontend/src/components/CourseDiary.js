@@ -183,6 +183,14 @@ function CourseDiary() {
       console.error("Error:", error);
     }
   };
+  const handlePasswordChangeClick = () => {
+    Swal.fire({
+      title: "Contact Admin",
+      text: "Please contact the admin for password change.",
+      icon: "info",
+      confirmButtonText: "OK",
+    });
+  };
 
   return (
     <div>
@@ -214,7 +222,13 @@ function CourseDiary() {
             </a>
           </Link>
 
-          <a href="password.html">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePasswordChangeClick();
+            }}
+          >
             <span className="material-icons-sharp">password</span>
             <h3>Change Password</h3>
           </a>
