@@ -5,7 +5,7 @@ import "./Chatapp.css";
 function Chatapp({ labsData, username1 }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [activeItem, setActiveItem] = useState("Network Lab");
+  const [activeItem, setActiveItem] = useState("");
   const [refreshInterval, setRefreshInterval] = useState(null);
 
   // Function to format the date and time
