@@ -149,7 +149,7 @@ def get_attendance_data(request):
         # Return the serialized data as a JSON response
         return JsonResponse({'attendance_data': serialized_data})
     else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+        return JsonResponse({'message': 'No data found'}, status=404)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

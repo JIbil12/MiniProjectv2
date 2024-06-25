@@ -57,13 +57,17 @@ function Chatapp({ labsData, username1 }) {
   };
 
   //Sending messages
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
 
   const handleSendMessage = async () => {
-    if (newMessage.trim()) {
+    if (newMessage.trim() && activeItem) {
       const currentTime = formatDateTime(new Date());
 
       try {
-        // Send the message to the backend
         const response = await axios.post(
           "http://127.0.0.1:8000/fac/create_chat/",
           {
@@ -74,13 +78,12 @@ function Chatapp({ labsData, username1 }) {
         );
 
         if (response.data.status === "success") {
-          // Add the new message to the existing messages
           setMessages([
             ...messages,
             {
               ...response.data.data,
               time: currentTime,
-              incoming: false, // Set incoming to false for messages sent by the user
+              incoming: false,
             },
           ]);
           setNewMessage("");
@@ -134,21 +137,24 @@ function Chatapp({ labsData, username1 }) {
               </div>
             ))}
           </div>
-          <div className="ChatApp-chat-input">
-            <input
-              type="text"
-              placeholder="Type your message..."
-              value={newMessage}
-              onChange={handleMessageChange}
-              style={{ backgroundColor: "#ababad", color: "#363949" }}
-            />
-            <button
-              style={{ backgroundColor: "#1565c0", color: "#f4f4f8" }}
-              onClick={handleSendMessage}
-            >
-              Send
-            </button>
-          </div>
+          {activeItem && (
+            <div className="ChatApp-chat-input">
+              <input
+                type="text"
+                placeholder="Type your message..."
+                value={newMessage}
+                onChange={handleMessageChange}
+                onKeyPress={handleKeyPress}
+                style={{ backgroundColor: "#ababad", color: "#363949" }}
+              />
+              <button
+                style={{ backgroundColor: "#1565c0", color: "#f4f4f8" }}
+                onClick={handleSendMessage}
+              >
+                Send
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

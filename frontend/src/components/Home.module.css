@@ -547,3 +547,31 @@ main .timetable.active .closeBtn {
     padding: 2rem;
   }
 }
+
+/* //new */
+
+/* Default Styles */
+.themeToggler {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.themeToggler .light-mode-icon,
+.themeToggler .dark-mode-icon {
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.themeToggler .active {
+  display: none;
+}
+
+/* Dark Theme Specific Styles */
+.dark-theme .themeToggler .light-mode-icon {
+  display: none;
+}
+
+.dark-theme .themeToggler .dark-mode-icon {
+  display: block;
+}

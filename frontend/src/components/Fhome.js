@@ -104,7 +104,6 @@ function FHome() {
 
   const handleSubmit = async () => {
     try {
-      setIsVisible(true);
       // Format the selected date in YYYY-MM-DD format
       const formattedDate = selectedDate.toISOString().split("T")[0];
 
@@ -119,9 +118,14 @@ function FHome() {
       );
 
       // Set the fetched attendance data
-      setAttendanceData(response.data.attendance_data);
+      if (response.data.message === "No data found") {
+        setAttendanceData([]);
+      } else {
+        setAttendanceData(response.data.attendance_data);
+      }
     } catch (error) {
       console.error("Error fetching attendance data:", error);
+      setAttendanceData([]);
     }
   };
 
@@ -229,15 +233,6 @@ function FHome() {
           <div>
             <div className={styles.subjects}>
               <div>
-                {/* Display the selected date */}
-                {/* <h1>
-                  Date Selected:{" "}
-                  {selectedDate
-                    ? selectedDate.toLocaleDateString()
-                    : "No date selected"}
-                </h1>
-                <h1>Selected class: {selectedClass}</h1>
-                <h1>Selected Batch: {selectedBatch}</h1> */}
                 <div>
                   <button
                     aria-controls="class-menu"
@@ -285,7 +280,6 @@ function FHome() {
                     marginTop: "10px",
                     backgroundColor: "#2196f3",
                     color: "white",
-
                     border: "none",
                     borderRadius: "10px",
                     cursor: "pointer",
@@ -295,47 +289,46 @@ function FHome() {
                 >
                   Submit
                 </button>
-                {/* <GenderSelection /> */}
               </div>
             </div>
-            {isVisible && (
-              <div className={styles.subjects} id="timetable">
+
+            <div className={styles.subjects} id="timetable">
+              {attendanceData && attendanceData.length > 0 ? (
                 <div>
-                  <div className={styles.subjects} id="timetable">
-                    <h1>Attendance Data</h1>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Subject</th>
-                          <th>Student Name</th>
-                          <th>Batch</th>
-                          <th>Attendance</th>
-                          <th>Vivamark</th>
-                          <th>Output</th>
-                          <th>Program Name</th>
+                  <h1>Attendance Data</h1>
+                  <table className={styles.attendanceTable}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Student Name</th>
+                        <th>Batch</th>
+                        <th>Attendance</th>
+                        <th>Vivamark</th>
+                        <th>Output</th>
+                        <th>Program Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attendanceData.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.date}</td>
+                          <td>{item.subject_name}</td>
+                          <td>{item.student_name}</td>
+                          <td>{item.batch}</td>
+                          <td>{item.attendance}</td>
+                          <td>{item.vivamark}</td>
+                          <td>{item.output}</td>
+                          <td>{item.programname}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {attendanceData &&
-                          attendanceData.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.date}</td>
-                              <td>{item.subject_name}</td>
-                              <td>{item.student_name}</td>
-                              <td>{item.batch}</td>
-                              <td>{item.attendance}</td>
-                              <td>{item.vivamark}</td>
-                              <td>{item.output}</td>
-                              <td>{item.programname}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            )}
+              ) : (
+                attendanceData && <p>No data found</p>
+              )}
+            </div>
           </div>
 
           <div className={styles.timetable} id="timetable">
@@ -345,7 +338,6 @@ function FHome() {
 
         <div className={styles.right}>
           <div className={styles.announcements}>
-            <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
             <div
               className={styles.updates}
               style={{

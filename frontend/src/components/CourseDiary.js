@@ -301,8 +301,11 @@ function CourseDiary() {
                     <label>Select Class:</label>
                     <select value={selectedClass} onChange={handleClassChange}>
                       <option value="">Select Class</option>
-                      <option value="Mini Project">Mini Project</option>
-                      <option value="DBMS">DBMS</option>
+                      {labsData.map((lab, index) => (
+                        <option key={index} value={lab}>
+                          {lab}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -410,7 +413,6 @@ function CourseDiary() {
 
         <div className={styles.right}>
           <div className={styles.announcements}>
-            <h2 style={{ marginBottom: "0.8rem" }}>Announcements</h2>
             <div
               className={styles.updates}
               style={{
